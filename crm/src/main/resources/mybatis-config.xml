@@ -9,7 +9,8 @@
   <typeAliases>
   
   	<package name="com.shamengxin.crm.settings.domain"/>
-  	
+  	<package name="com.shamengxin.crm.workbench.domain"/>
+
   
   </typeAliases>
   
@@ -29,7 +30,8 @@
   <mappers>
    
       <package name="com.shamengxin.crm.settings.dao"/>
-    
+      <package name="com.shamengxin.crm.workbench.dao"/>
+
   </mappers>
 </configuration>
 

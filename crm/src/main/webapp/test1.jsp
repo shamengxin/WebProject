@@ -9,5 +9,25 @@
 </head>
 <body>
 
+        $.ajax({
+
+        url:"",
+        data:{
+
+        },
+        type:"",
+        dataType:"json",
+        success:function (data){
+
+
+
+        }
+
+        })
+
+
+        String createTime = DateTimeUtil.getSysTime();
+        String createBy = ((User)request.getSession().getAttribute("user")).getName();
+
 </body>
 </html>
