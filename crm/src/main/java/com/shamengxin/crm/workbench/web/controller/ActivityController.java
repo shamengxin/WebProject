@@ -6,6 +6,7 @@ import com.shamengxin.crm.settings.service.impl.UserServiceImpl;
 import com.shamengxin.crm.utils.*;
 import com.shamengxin.crm.vo.PaginationVO;
 import com.shamengxin.crm.workbench.domain.Activity;
+import com.shamengxin.crm.workbench.domain.ActivityRemark;
 import com.shamengxin.crm.workbench.service.ActivityService;
 import com.shamengxin.crm.workbench.service.impl.ActivityServiceImpl;
 
@@ -45,7 +46,130 @@ public class ActivityController extends HttpServlet {
 
             delete(request, response);
 
+        } else if ("/workbench/activity/getUserListAndActivity.do".equals(path)) {
+
+            getUserListAndActivity(request, response);
+
+        } else if ("/workbench/activity/update.do".equals(path)) {
+
+            update(request, response);
+
+        } else if ("/workbench/activity/detail.do".equals(path)) {
+
+            detail(request, response);
+
+        } else if ("/workbench/activity/getRemarkListByAid.do".equals(path)) {
+
+            getRemarkListByAid(request, response);
+
+        } else if ("/workbench/activity/deleteRemark.do".equals(path)) {
+
+            deleteRemark(request, response);
+
         }
+
+    }
+
+    private void deleteRemark(HttpServletRequest request, HttpServletResponse response) {
+
+        System.out.println("删除备注操作");
+
+        String id = request.getParameter("id");
+
+        ActivityService as = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
+
+        boolean flag=as.deleteRemark(id);
+
+        PrintJson.printJsonFlag(response,flag);
+
+    }
+
+    private void getRemarkListByAid(HttpServletRequest request, HttpServletResponse response) {
+
+        System.out.println("根据市场活动的id，取得备注信息列表");
+
+        String activityId=request.getParameter("activityId");
+
+        ActivityService as = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
+
+        List<ActivityRemark> arList= as.getRemarkListByAid(activityId);
+
+        PrintJson.printJsonObj(response,arList);
+    }
+
+    private void detail(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        System.out.println("进入到跳转到详细信息页的操作");
+
+        String id = request.getParameter("id");
+
+        ActivityService as = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
+
+        Activity a = as.detail(id);
+
+        request.setAttribute("a",a);
+
+        request.getRequestDispatcher("/workbench/activity/detail.jsp").forward(request,response);
+
+
+    }
+
+    private void update(HttpServletRequest request, HttpServletResponse response) {
+
+        System.out.println("执行市场活动修改操作");
+
+        String id = request.getParameter("id");
+        String owner = request.getParameter("owner");
+        String name = request.getParameter("name");
+        String startDate = request.getParameter("startDate");
+        String endDate = request.getParameter("endDate");
+        String cost = request.getParameter("cost");
+        String description = request.getParameter("description");
+        //修改时间：当前系统时间
+        String editTime = DateTimeUtil.getSysTime();
+        String editeBy = ((User) request.getSession().getAttribute("user")).getName();
+
+        Activity a = new Activity();
+        a.setId(id);
+        a.setOwner(owner);
+        a.setName(name);
+        a.setStartDate(startDate);
+        a.setEndDate(endDate);
+        a.setCost(cost);
+        a.setDescription(description);
+        a.setEditTime(editTime);
+        a.setEditBy(editeBy);
+
+        ActivityService as = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
+
+        Boolean flag = as.update(a);
+
+        PrintJson.printJsonFlag(response, flag);
+
+    }
+
+    private void getUserListAndActivity(HttpServletRequest request, HttpServletResponse response) {
+
+        System.out.println("进入到查询用户信息列表，根据市场活动id查询单条记录的操作");
+
+        String id = request.getParameter("id");
+
+        ActivityService as = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
+
+        /*
+
+            总结：
+                controller调用service的方法，返回值应该是什么
+                你得想一想前端要什么，就要从service层取什么。
+
+
+
+         */
+
+        Map<String, Object> map = as.getUserListAndActivity(id);
+
+        PrintJson.printJsonObj(response, map);
+
 
     }
 
@@ -59,7 +183,7 @@ public class ActivityController extends HttpServlet {
 
         boolean flag = as.delete(ids);
 
-        PrintJson.printJsonFlag(response,flag);
+        PrintJson.printJsonFlag(response, flag);
 
     }
 

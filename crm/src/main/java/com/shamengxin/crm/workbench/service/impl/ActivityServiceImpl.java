@@ -1,5 +1,7 @@
 package com.shamengxin.crm.workbench.service.impl;
 
+import com.shamengxin.crm.settings.dao.UserDao;
+import com.shamengxin.crm.settings.domain.User;
 import com.shamengxin.crm.utils.SqlSessionUtil;
 import com.shamengxin.crm.vo.PaginationVO;
 import com.shamengxin.crm.workbench.dao.ActivityDao;
@@ -8,6 +10,7 @@ import com.shamengxin.crm.workbench.domain.Activity;
 import com.shamengxin.crm.workbench.domain.ActivityRemark;
 import com.shamengxin.crm.workbench.service.ActivityService;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +18,8 @@ public class ActivityServiceImpl implements ActivityService {
 
     private ActivityDao activityDao = SqlSessionUtil.getSqlSession().getMapper(ActivityDao.class);
     private ActivityRemarkDao activityRemarkDao = SqlSessionUtil.getSqlSession().getMapper(ActivityRemarkDao.class);
+    private UserDao userDao = SqlSessionUtil.getSqlSession().getMapper(UserDao.class);
+
 
     public Boolean save(Activity a) {
 
@@ -68,7 +73,68 @@ public class ActivityServiceImpl implements ActivityService {
         //删除市场活动
         int count3 = activityDao.delete(ids);
 
-        if(count3!=ids.length){
+        if (count3 != ids.length) {
+
+            flag = false;
+
+        }
+
+        return flag;
+    }
+
+    public Map<String, Object> getUserListAndActivity(String id) {
+
+        //取uList
+        List<User> uList = userDao.getUserList();
+
+        //取a
+        Activity a = activityDao.getById(id);
+
+        //将uList和a打包到map中
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("uList", uList);
+        map.put("a", a);
+
+        //返回map就可以了
+        return map;
+    }
+
+    public Boolean update(Activity a) {
+        boolean flag = true;
+
+        int count = activityDao.update(a);
+
+        if (count != 1) {
+
+            flag = false;
+
+        }
+
+        return flag;
+    }
+
+    public Activity detail(String id) {
+
+        Activity a = activityDao.detail(id);
+
+        return a;
+
+    }
+
+    public List<ActivityRemark> getRemarkListByAid(String activityId) {
+
+        List<ActivityRemark> arList=activityRemarkDao.getRemarkListByAid(activityId);
+
+        return arList;
+
+    }
+
+    public boolean deleteRemark(String id) {
+        boolean flag =true;
+
+        int count =activityRemarkDao.deleteById(id);
+
+        if(count!=1){
 
             flag=false;
 
