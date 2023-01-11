@@ -55,12 +55,154 @@
             //页面加载完毕后，展现市场活动关联的备注信息列表
             showRemarkList();
 
-            $("#remarkBody").on("mouseover",".remarkDiv",function(){
+            $("#remarkBody").on("mouseover", ".remarkDiv", function () {
                 $(this).children("div").children("div").show();
             })
-            $("#remarkBody").on("mouseout",".remarkDiv",function(){
+            $("#remarkBody").on("mouseout", ".remarkDiv", function () {
                 $(this).children("div").children("div").hide();
             })
+
+            //为保存按钮绑定事件，执行备注的添加操作
+            $("#saveRemarkBtn").click(function () {
+
+                $.ajax({
+
+                    url: "workbench/activity/saveRemark.do",
+                    data: {
+
+                        "noteContent": $.trim($("#remark").val()),
+                        "activityId": "${a.id}"
+
+                    },
+                    type: "post",
+                    dataType: "json",
+                    success: function (data) {
+
+                        /*
+
+                            data:
+                                {"success":true/false,"ar":{备注}}
+
+                         */
+
+                        if (data.success) {
+
+                            //添加成功
+
+                            //textarea文本域中的信息清空
+                            $("#remark").val("");
+
+                            //在textarea文本域的上方新增一个div
+                            var html = "";
+
+                            html += '<div id="' + data.ar.id + '" class="remarkDiv" style="height: 60px;">';
+                            html += '<img title="zhangsan" src="image/user-thumbnail.png" style="width: 30px; height:30px;">';
+                            html += '<div style="position: relative; top: -40px; left: 40px;">';
+                            html += '<h5>' + data.ar.noteContent + '</h5>';
+                            html += '<font color="gray">市场活动</font> <font color="gray">-</font> <b>${a.name}</b> <small style="color: gray;">' + (data.ar.createTime) + ' 由' + (data.ar.createBy) + '</small>';
+                            html += '<div style="position: relative; left: 500px; top: -30px; height: 30px; width: 100px; display: none;">';
+                            html += '<a class="myHref" href="javascript:void(0);" onclick="editRemark(\'' + data.ar.id + '\')"><span class="glyphicon glyphicon-edit" style="font-size: 20px; color: #FF0000;"></span></a>';
+                            html += '&nbsp;&nbsp;&nbsp;&nbsp;';
+                            html += '<a class="myHref" href="javascript:void(0);" onclick="deleteRemark(\'' + data.ar.id + '\')"><span class="glyphicon glyphicon-remove" style="font-size: 20px; color: #FF0000;"></span></a>';
+                            html += '</div>';
+                            html += '</div>';
+                            html += '</div>';
+
+                            $("#remarkDiv").before(html)
+
+                        } else {
+
+                            alert("添加备注失败")
+
+                        }
+
+                    }
+
+                })
+
+            })
+
+            //为更新按钮绑定事件
+            $("#updateRemarkBtn").click(function () {
+
+                var id = $("#remarkId").val();
+
+                $.ajax({
+
+                    url: "workbench/activity/updateRemark.do",
+                    data: {
+
+                        "id": id,
+                        "noteContent": $.trim($("#noteContent").val())
+
+                    },
+                    type: "post",
+                    dataType: "json",
+                    success: function (data) {
+
+                        /*
+
+                            data:
+                                {"success":true/false,"ar":{备注}}
+
+                         */
+
+                        if (data.success) {
+
+                            //修改备注成功
+                            //更新div中相应的信息，需要更新的内容有 noteContent，editTime,editBy
+                            $("#e"+id).html(data.ar.noteContent);
+                            $("#s"+id).html(data.ar.editTime+" 由"+data.ar.editBy);
+
+                            //更新内容之后，关闭模态窗口
+                            $("#editRemarkModal").modal("hide")
+
+                        } else {
+
+                            alert("修改备注失败");
+
+                        }
+
+                    }
+
+                })
+
+            })
+
+            //为详情页编辑按钮绑定事件
+            $("#edit-activityRemarkDetailBtn").click(function (){
+
+                $.ajax({
+
+                    url:"workbench/activity/getUserList.do",
+                    type:"get",
+                    dataType:"json",
+                    success:function (data){
+
+                        /*
+
+                            data:
+                                {"uList":{用户1},{2},{3}...}
+
+                         */
+                        var html="<option></option>"
+                        $.each(data,function (i,n){
+
+                            html+="<option id='"+n.id+"'>"+n.name+"</option>";
+
+                        })
+                        $("#edit-marketActivityOwner").html(html);
+
+                        $("#edit-marketActivityOwner").val("${a.owner}")
+
+                        $("#editActivityModal").modal("show")
+
+                    }
+
+                })
+
+            })
+
         });
 
         function showRemarkList() {
@@ -92,18 +234,18 @@
 
                          */
 
-                        html+='<div id="'+n.id+'" class="remarkDiv" style="height: 60px;">';
-                        html+='<img title="zhangsan" src="image/user-thumbnail.png" style="width: 30px; height:30px;">';
-                        html+='<div style="position: relative; top: -40px; left: 40px;">';
-                        html+='<h5>'+n.noteContent+'</h5>';
-                        html+='<font color="gray">市场活动</font> <font color="gray">-</font> <b>${a.name}</b> <small style="color: gray;">'+(n.editFlag==0?n.createTime:n.editTime)+' 由'+(n.editFlag==0?n.createBy:n.editBy)+'</small>';
-                        html+='<div style="position: relative; left: 500px; top: -30px; height: 30px; width: 100px; display: none;">';
-                        html+='<a class="myHref" href="javascript:void(0);"><span class="glyphicon glyphicon-edit" style="font-size: 20px; color: #FF0000;"></span></a>';
-                        html+='&nbsp;&nbsp;&nbsp;&nbsp;';
-                        html+='<a class="myHref" href="javascript:void(0);" onclick="deleteRemark(\''+n.id+'\')"><span class="glyphicon glyphicon-remove" style="font-size: 20px; color: #FF0000;"></span></a>';
-                        html+='</div>';
-                        html+='</div>';
-                        html+='</div>';
+                        html += '<div id="' + n.id + '" class="remarkDiv" style="height: 60px;">';
+                        html += '<img title="zhangsan" src="image/user-thumbnail.png" style="width: 30px; height:30px;">';
+                        html += '<div style="position: relative; top: -40px; left: 40px;">';
+                        html += '<h5 id="e' + n.id + '">' + n.noteContent + '</h5>';
+                        html += '<font color="gray">市场活动</font> <font color="gray">-</font> <b>${a.name}</b> <small style="color: gray;" id="s'+n.id+'">' + (n.editFlag == 0 ? n.createTime : n.editTime) + ' 由' + (n.editFlag == 0 ? n.createBy : n.editBy) + '</small>';
+                        html += '<div style="position: relative; left: 500px; top: -30px; height: 30px; width: 100px; display: none;">';
+                        html += '<a class="myHref" href="javascript:void(0);" onclick="editRemark(\'' + n.id + '\')"><span class="glyphicon glyphicon-edit" style="font-size: 20px; color: #FF0000;"></span></a>';
+                        html += '&nbsp;&nbsp;&nbsp;&nbsp;';
+                        html += '<a class="myHref" href="javascript:void(0);" onclick="deleteRemark(\'' + n.id + '\')"><span class="glyphicon glyphicon-remove" style="font-size: 20px; color: #FF0000;"></span></a>';
+                        html += '</div>';
+                        html += '</div>';
+                        html += '</div>';
 
                     })
                     $("#remarkDiv").before(html)
@@ -114,19 +256,19 @@
 
         }
 
-        function deleteRemark(id){
+        function deleteRemark(id) {
 
             $.ajax({
 
-                url:"workbench/activity/deleteRemark.do",
-                data:{
+                url: "workbench/activity/deleteRemark.do",
+                data: {
 
-                    "id":id
+                    "id": id
 
                 },
-                type:"post",
-                dataType:"json",
-                success:function (data){
+                type: "post",
+                dataType: "json",
+                success: function (data) {
 
                     /*
 
@@ -137,17 +279,17 @@
 
                      */
 
-                    if(data.success){
+                    if (data.success) {
 
                         //删除备注成功
                         //这种做法不行，记录使用的是before方法，每一次删除之后，都会保留原有的数据
                         // showRemarkList()
 
                         //找到需要删除记录的div，将div移除掉
-                        $("#"+id).remove();
+                        $("#" + id).remove();
 
 
-                    }else {
+                    } else {
 
                         alert("删除备注失败")
 
@@ -156,6 +298,22 @@
                 }
 
             })
+
+        }
+
+        function editRemark(id) {
+
+            //将模态窗口中，隐藏域中的id进行赋值
+            $("#remarkId").val(id);
+
+            //找到指定的存放备注信息的h5标签
+            var noteContent = $("#e" + id).html();
+
+            //将h5中展现出来的信息，赋予到修改操作的模态窗口的文本域中
+            $("#noteContent").val(noteContent);
+
+            //以上信息修改完毕后，将修改备注的模态窗口打开
+            $("#editRemarkModal").modal("show")
 
         }
     </script>
@@ -207,45 +365,45 @@
 
                 <form class="form-horizontal" role="form">
 
+                    <input type="hidden" id="edit-marketActivityId" value="${a.id}">
+
                     <div class="form-group">
                         <label for="edit-marketActivityOwner" class="col-sm-2 control-label">所有者<span
                                 style="font-size: 15px; color: red;">*</span></label>
                         <div class="col-sm-10" style="width: 300px;">
-                            <select class="form-control" id="edit-marketActivityOwner">
-                                <option>zhangsan</option>
-                                <option>lisi</option>
-                                <option>wangwu</option>
+                            <select class="form-control" id="edit-marketActivityOwner" >
+
                             </select>
                         </div>
                         <label for="edit-marketActivityName" class="col-sm-2 control-label">名称<span
                                 style="font-size: 15px; color: red;">*</span></label>
                         <div class="col-sm-10" style="width: 300px;">
-                            <input type="text" class="form-control" id="edit-marketActivityName" value="发传单">
+                            <input type="text" class="form-control" id="edit-marketActivityName" value="${a.name}">
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="edit-startTime" class="col-sm-2 control-label">开始日期</label>
                         <div class="col-sm-10" style="width: 300px;">
-                            <input type="text" class="form-control" id="edit-startTime" value="2020-10-10">
+                            <input type="text" class="form-control" id="edit-startTime" value="${a.startDate}">
                         </div>
                         <label for="edit-endTime" class="col-sm-2 control-label">结束日期</label>
                         <div class="col-sm-10" style="width: 300px;">
-                            <input type="text" class="form-control" id="edit-endTime" value="2020-10-20">
+                            <input type="text" class="form-control" id="edit-endTime" value="${a.endDate}">
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="edit-cost" class="col-sm-2 control-label">成本</label>
                         <div class="col-sm-10" style="width: 300px;">
-                            <input type="text" class="form-control" id="edit-cost" value="5,000">
+                            <input type="text" class="form-control" id="edit-cost" value="${a.cost}">
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="edit-describe" class="col-sm-2 control-label">描述</label>
                         <div class="col-sm-10" style="width: 81%;">
-                            <textarea class="form-control" rows="3" id="edit-describe">市场活动Marketing，是指品牌主办或参与的展览会议与公关市场活动，包括自行主办的各类研讨会、客户交流会、演示会、新产品发布会、体验会、答谢会、年会和出席参加并布展或演讲的展览会、研讨会、行业交流会、颁奖典礼等</textarea>
+                            <textarea class="form-control" rows="3" id="edit-describe">${a.description}</textarea>
                         </div>
                     </div>
 
@@ -254,7 +412,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                <button type="button" class="btn btn-primary" data-dismiss="modal">更新</button>
+                <button type="button" class="btn btn-primary" id="update-activityRemarkDetailBtn">更新</button>
             </div>
         </div>
     </div>
@@ -272,7 +430,7 @@
         <h3>市场活动-${a.name} <small>${a.startDate} ~ ${a.endDate}</small></h3>
     </div>
     <div style="position: relative; height: 50px; width: 250px;  top: -72px; left: 700px;">
-        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#editActivityModal"><span
+        <button type="button" class="btn btn-default" id="edit-activityRemarkDetailBtn"><span
                 class="glyphicon glyphicon-edit"></span> 编辑
         </button>
         <button type="button" class="btn btn-danger"><span class="glyphicon glyphicon-minus"></span> 删除</button>
@@ -372,7 +530,7 @@
                       placeholder="添加备注..."></textarea>
             <p id="cancelAndSaveBtn" style="position: relative;left: 737px; top: 10px; display: none;">
                 <button id="cancelBtn" type="button" class="btn btn-default">取消</button>
-                <button type="button" class="btn btn-primary">保存</button>
+                <button type="button" class="btn btn-primary" id="saveRemarkBtn">保存</button>
             </p>
         </form>
     </div>

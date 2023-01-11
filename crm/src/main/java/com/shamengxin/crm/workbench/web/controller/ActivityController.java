@@ -66,7 +66,76 @@ public class ActivityController extends HttpServlet {
 
             deleteRemark(request, response);
 
+        } else if ("/workbench/activity/saveRemark.do".equals(path)) {
+
+            saveRemark(request, response);
+
+        } else if ("/workbench/activity/updateRemark.do".equals(path)) {
+
+            updateRemark(request, response);
+
         }
+
+    }
+
+    private void updateRemark(HttpServletRequest request, HttpServletResponse response) {
+
+        System.out.println("执行修改备注的操作");
+
+        String id = request.getParameter("id");
+        String noteContent = request.getParameter("noteContent");
+        String editTime = DateTimeUtil.getSysTime();
+        String editBy = ((User) request.getSession().getAttribute("user")).getName();
+        String editFlag = "1";
+
+        ActivityRemark ar = new ActivityRemark();
+
+        ar.setId(id);
+        ar.setNoteContent(noteContent);
+        ar.setEditTime(editTime);
+        ar.setEditBy(editBy);
+        ar.setEditFlag(editFlag);
+
+        ActivityService as = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
+
+        boolean flag = as.updateRemark(ar);
+
+        Map<String,Object> map=new HashMap<String, Object>();
+        map.put("success",flag);
+        map.put("ar",ar);
+        PrintJson.printJsonObj(response,map);
+    }
+
+    private void saveRemark(HttpServletRequest request, HttpServletResponse response) {
+
+        System.out.println("执行添加备注的操作");
+
+        String noteContent = request.getParameter("noteContent");
+        String activityId = request.getParameter("activityId");
+        String id = UUIDUtil.getUUID();
+        String createTime = DateTimeUtil.getSysTime();
+        String createBy = ((User) request.getSession().getAttribute("user")).getName();
+        String editFlag = "0";
+
+        ActivityRemark ar = new ActivityRemark();
+
+        ar.setId(id);
+        ar.setActivityId(activityId);
+        ar.setCreateBy(createBy);
+        ar.setNoteContent(noteContent);
+        ar.setCreateTime(createTime);
+        ar.setEditFlag(editFlag);
+
+        ActivityService as = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
+
+        boolean flag=as.saveRemark(ar);
+        Map<String,Object> map = new HashMap<String, Object>();
+        map.put("success",flag);
+        map.put("ar",ar);
+
+        PrintJson.printJsonObj(response,map);
+
+
 
     }
 
@@ -78,9 +147,9 @@ public class ActivityController extends HttpServlet {
 
         ActivityService as = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
 
-        boolean flag=as.deleteRemark(id);
+        boolean flag = as.deleteRemark(id);
 
-        PrintJson.printJsonFlag(response,flag);
+        PrintJson.printJsonFlag(response, flag);
 
     }
 
@@ -88,13 +157,13 @@ public class ActivityController extends HttpServlet {
 
         System.out.println("根据市场活动的id，取得备注信息列表");
 
-        String activityId=request.getParameter("activityId");
+        String activityId = request.getParameter("activityId");
 
         ActivityService as = (ActivityService) ServiceFactory.getService(new ActivityServiceImpl());
 
-        List<ActivityRemark> arList= as.getRemarkListByAid(activityId);
+        List<ActivityRemark> arList = as.getRemarkListByAid(activityId);
 
-        PrintJson.printJsonObj(response,arList);
+        PrintJson.printJsonObj(response, arList);
     }
 
     private void detail(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -107,9 +176,9 @@ public class ActivityController extends HttpServlet {
 
         Activity a = as.detail(id);
 
-        request.setAttribute("a",a);
+        request.setAttribute("a", a);
 
-        request.getRequestDispatcher("/workbench/activity/detail.jsp").forward(request,response);
+        request.getRequestDispatcher("/workbench/activity/detail.jsp").forward(request, response);
 
 
     }
