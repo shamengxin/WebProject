@@ -188,12 +188,12 @@
                         var html="<option></option>"
                         $.each(data,function (i,n){
 
-                            html+="<option id='"+n.id+"'>"+n.name+"</option>";
+                            html+="<option value='"+n.id+"'>"+n.name+"</option>";
 
                         })
                         $("#edit-marketActivityOwner").html(html);
 
-                        $("#edit-marketActivityOwner").val("${a.owner}")
+                        $("#edit-marketActivityOwner").val("${user.id}")
 
                         $("#editActivityModal").modal("show")
 
