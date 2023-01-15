@@ -124,7 +124,7 @@ public class ClueController extends HttpServlet {
 
         boolean flag1 = cs.convert(clueId,t,createBy);
 
-        response.sendRedirect(request.getContextPath()+"workbench/clue/index.jsp");
+        response.sendRedirect(request.getContextPath()+"/workbench/clue/index.jsp");
 
 
     }
