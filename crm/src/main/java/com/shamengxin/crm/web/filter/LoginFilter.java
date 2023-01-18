@@ -2,7 +2,6 @@ package com.shamengxin.crm.web.filter;
 
 
 import com.shamengxin.crm.settings.domain.User;
-import com.sun.deploy.net.HttpRequest;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;

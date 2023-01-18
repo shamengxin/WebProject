@@ -11,7 +11,9 @@ import com.shamengxin.crm.workbench.domain.Tran;
 import com.shamengxin.crm.workbench.domain.TranHistory;
 import com.shamengxin.crm.workbench.service.TranService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TranServiceImpl implements TranService {
 
@@ -100,5 +102,53 @@ public class TranServiceImpl implements TranService {
         List<TranHistory> thList = tranHistoryDao.getHistoryListByTranId(tranId);
 
         return thList;
+    }
+
+    public boolean changeStage(Tran t) {
+
+        boolean flag = true;
+
+        //改变交易阶段
+        int count1 = tranDao.changeStage(t);
+        if (count1!=1){
+
+            flag=false;
+
+        }
+
+        //交易阶段改变后，生成一条交易历史
+        TranHistory th =new TranHistory();
+        th.setId(UUIDUtil.getUUID());
+        th.setCreateBy(t.getEditBy());
+        th.setCreateTime(DateTimeUtil.getSysTime());
+        th.setExpectedDate(t.getExpectedDate());
+        th.setStage(t.getStage());
+        th.setMoney(t.getMoney());
+        th.setTranId(t.getId());
+        //添加交易历史
+        int count2 = tranHistoryDao.save(th);
+        if (count2!=1){
+
+            flag=false;
+
+        }
+        return flag;
+    }
+
+    public Map<String, Object> getCharts() {
+
+        //取得total
+        int total = tranDao.getTotal();
+
+        //取得dataList
+        List<Map<String,Object>> dataList = tranDao.getCharts();
+
+        //将total和dataList保存到map中
+        Map<String,Object> map =new HashMap<String, Object>();
+        map.put("total",total);
+        map.put("dataList",dataList);
+
+        //返回map
+        return map;
     }
 }

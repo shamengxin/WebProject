@@ -11,14 +11,14 @@
     List<DicValue> dvList = (List<DicValue>) application.getAttribute("stageList");
 
     //准备阶段和可能性之间的对应关系
-    Map<String,String> pMap = (Map<String, String>) application.getAttribute("pMap");
+    Map<String, String> pMap = (Map<String, String>) application.getAttribute("pMap");
 
     //根据pMap准备pMap中的key集合
     Set<String> set = pMap.keySet();
 
     //准备：前面正常阶段和后面丢失阶段的分界点下标
-    int point=0;
-    for(int i=0;i<dvList.size();i++){
+    int point = 0;
+    for (int i = 0; i < dvList.size(); i++) {
 
         //取得每一个字典值
         DicValue dv = dvList.get(i);
@@ -29,9 +29,9 @@
         String possibility = pMap.get(stage);
 
         //如果可能性为0，说明找到了前面正常阶段和后面丢失阶段的分界点
-        if("0".equals(possibility)){
+        if ("0".equals(possibility)) {
 
-            point=i;
+            point = i;
 
             break;
 
@@ -131,19 +131,19 @@
             showHistoryList();
         });
 
-        function showHistoryList(){
+        function showHistoryList() {
 
             $.ajax({
 
-                url:"workbench/transaction/getHistoryListByTranId.do",
-                data:{
+                url: "workbench/transaction/getHistoryListByTranId.do",
+                data: {
 
-                    "tranId":"${t.id}"
+                    "tranId": "${t.id}"
 
                 },
-                type:"get",
-                dataType:"json",
-                success:function (data){
+                type: "get",
+                dataType: "json",
+                success: function (data) {
 
                     /*
 
@@ -152,17 +152,17 @@
 
                      */
 
-                    var html="";
+                    var html = "";
 
-                    $.each(data,function (i,n){
+                    $.each(data, function (i, n) {
 
                         html += '<tr>';
-                        html += '<td>'+n.stage+'</td>';
-                        html += '<td>'+n.money+'</td>';
-                        html += '<td>'+n.possibility+'</td>';
-                        html += '<td>'+n.expectedDate+'</td>';
-                        html += '<td>'+n.createTime+'</td>';
-                        html += '<td>'+n.createBy+'</td>';
+                        html += '<td>' + n.stage + '</td>';
+                        html += '<td>' + n.money + '</td>';
+                        html += '<td>' + n.possibility + '</td>';
+                        html += '<td>' + n.expectedDate + '</td>';
+                        html += '<td>' + n.createTime + '</td>';
+                        html += '<td>' + n.createBy + '</td>';
                         html += '</tr>';
 
                     })
@@ -172,6 +172,185 @@
 
             })
 
+        }
+
+        /*
+
+            方法：改变交易阶段
+            参数：
+                stage：需要改变的阶段
+                i:需要改变阶段对应的下标
+
+        */
+        function changeStage(stage,i){
+
+            // alert(stage)
+            // alert(i)
+
+            $.ajax({
+
+                url:"workbench/transaction/changeStage.do",
+                data:{
+
+                    "id" : "${t.id}",
+                    "stage" : stage,
+                    "money":"${t.money}",   //生成交易历史用
+                    "expectedDate":"${t.expectedDate}"   //生成交易历史用
+                },
+                type:"post",
+                dataType:"json",
+                success:function (data){
+
+                    /*
+
+                        data
+                            {"success":true/false,"t":{交易}}
+
+                     */
+                    if(data.success){
+
+                        //改变阶段成功后
+                        //（1）需要在详细信息页上局部刷新 刷新阶段，可能性，修改人，修改时间
+                        $("#stage").html(data.t.stage)
+                        $("#possibility").html(data.t.possibility)
+                        $("#editBy").html(data.t.editBy)
+                        $("#editTime").html(data.t.editTime)
+
+                        //（2）将所有的阶段图标重新判断，重新赋予样式及颜色
+                        changeIcon(stage,i);
+
+                    }else{
+
+                        alert("改变阶段失败")
+
+                    }
+
+                }
+
+            })
+
+        }
+
+        function changeIcon(stage,index1){
+
+            //当前阶段
+            var currentStage = stage;
+
+            //当前阶段可能性
+            var currentPossibility = $("#possibility").html();
+
+            //当前阶段的下标
+            var index = index1;
+
+            //前面正常阶段和后面丢失阶段的分界点的下标
+            var point = "<%=point%>";
+
+            // alert("当前阶段"+currentStage);
+            // alert("当前阶段可能性"+currentPossibility);
+            // alert("当前阶段的下标"+index);
+            // alert("前面正常阶段和后面丢失阶段的分界点的下标"+point);
+
+            //如果当且阶段的可能性为0，前7ge一定是黑圈，后两个一个是红叉一个是黑叉
+            if(currentPossibility=="0"){
+
+                //遍历前7个
+                for (var i=0;i<point;i++){
+
+                    //------------黑圈
+                    //移除掉原有样式
+                    $("#"+i).removeClass();
+                    //添加新样式
+                    $("#"+i).addClass("glyphicon glyphicon-record mystage");
+                    //为样式赋予颜色
+                    $("#"+i).css("color","#000000")
+
+                }
+
+                //遍历后2个
+                for (var i=point;i<<%=dvList.size()%>;i++){
+
+                    //如果是当前阶段
+                    if(i==index){
+
+                        //-----------红叉
+                        //移除掉原有样式
+                        $("#"+i).removeClass();
+                        //添加新样式
+                        $("#"+i).addClass("glyphicon glyphicon-remove mystage");
+                        //为样式赋予颜色
+                        $("#"+i).css("color","#FF0000")
+
+                    //如果不是当前阶段
+                    }else{
+
+                        //-----------黑叉
+                        //移除掉原有样式
+                        $("#"+i).removeClass();
+                        //添加新样式
+                        $("#"+i).addClass("glyphicon glyphicon-remove mystage");
+                        //为样式赋予颜色
+                        $("#"+i).css("color","#000000")
+
+                    }
+
+                }
+
+            //如果当前阶段的可能性不为0，前7个绿圈，绿色标记，黑圈，后两个一定是黑叉
+            }else{
+
+                //遍历前7个绿圈，绿色标记，黑圈
+                for (var i=0;i<point;i++){
+
+                    //如果是当前阶段
+                    if(i==index){
+
+                        //-------------绿色标记
+                        //移除掉原有样式
+                        $("#"+i).removeClass();
+                        //添加新样式
+                        $("#"+i).addClass("glyphicon glyphicon-map-marker mystage");
+                        //为样式赋予颜色
+                        $("#"+i).css("color","#90F790")
+
+                    //如果小于当前阶段
+                    }else if(i<index){
+
+                        //-------------绿圈
+                        //移除掉原有样式
+                        $("#"+i).removeClass();
+                        //添加新样式
+                        $("#"+i).addClass("glyphicon glyphicon-ok-circle mystage");
+                        //为样式赋予颜色
+                        $("#"+i).css("color","#90F790")
+
+                    //如果大于当前阶段
+                    }else {
+
+                        //-------------黑圈
+                        //移除掉原有样式
+                        $("#"+i).removeClass();
+                        //添加新样式
+                        $("#"+i).addClass("glyphicon glyphicon-record mystage");
+                        //为样式赋予颜色
+                        $("#"+i).css("color","#000000")
+
+                    }
+
+                }
+
+                //遍历后2个
+                for (var i=point;i<<%=dvList.size()%>;i++){
+
+                    //------------黑叉
+                    //移除掉原有样式
+                    $("#"+i).removeClass();
+                    //添加新样式
+                    $("#"+i).addClass("glyphicon glyphicon-remove mystage");
+                    //为样式赋予颜色
+                    $("#"+i).css("color","#000000")
+
+                }
+            }
         }
     </script>
 
@@ -211,9 +390,9 @@
 
         //先判断当前阶段
         //如果当前阶段的可能性为0，前7个一定是黑圈，后两个一个是红叉，一个是黑叉
-        if("0".equals(currentPossibility)){
+        if ("0".equals(currentPossibility)) {
 
-            for(int i=0;i<dvList.size();i++){
+            for (int i = 0; i < dvList.size(); i++) {
 
                 //取得每一个遍历出来的阶段，根据每一个遍历出来的阶段取其可能性
                 DicValue dv = dvList.get(i);
@@ -221,24 +400,138 @@
                 String listPossibility = pMap.get(listStage);
 
                 //如果遍历出来的阶段的可能性为0，说明是后两个
-                if("0".equals(listPossibility)){
+                if ("0".equals(listPossibility)) {
 
+                    //如果是当前阶段
+                    if (listStage.equals(currentStage)) {
 
-                //如果遍历出来的阶段的可能性不为0
-                }else {
+                        //------------------红叉
+    %>
+                        <span id="<%=i%>" onclick="changeStage('<%=listStage%>','<%=i%>')"
+                              class="glyphicon glyphicon-remove mystage"
+                              data-toggle="popover" data-placement="bottom"
+                              data-content="<%=dv.getText()%>" style="color: #FF0000;"></span>
+                        -----------
 
+    <%
+                        //如果不是当前阶段
+                    } else {
 
+                        //-------------------黑叉
+    %>
+                        <span id="<%=i%>" onclick="changeStage('<%=listStage%>','<%=i%>')"
+                              class="glyphicon glyphicon-remove mystage"
+                              data-toggle="popover" data-placement="bottom"
+                              data-content="<%=dv.getText()%>" style="color: #000000;"></span>
+                        -----------
+
+    <%
+
+                    }
+
+                    //如果遍历出来的阶段的可能性不为0，说明是前七个，一定是黑圈
+                } else {
+
+                    //-------------------------黑圈
+    %>
+                    <span id="<%=i%>" onclick="changeStage('<%=listStage%>','<%=i%>')"
+                          class="glyphicon glyphicon-record mystage"
+                          data-toggle="popover" data-placement="bottom"
+                          data-content="<%=dv.getText()%>" style="color: #000000;"></span>
+                    -----------
+
+    <%
 
                 }
 
 
             }
 
-        //如果当前阶段的可能性不为0，前7个有可能是绿圈，绿色标记，黑圈，后两个一定是黑叉
-        }else{
+            //如果当前阶段的可能性不为0，前7个有可能是绿圈，绿色标记，黑圈，后两个一定是黑叉
+        } else {
 
+            //准备当前阶段的下标
+            int index = 0;
+            for (int i = 0; i < dvList.size(); i++) {
 
+                DicValue dv = dvList.get(i);
+                String stage = dv.getValue();
+                // String possibility = pMap.get(stage);
+                //如果遍历出来的阶段是当前阶段
+                if (stage.equals(currentStage)) {
 
+                    index = i;
+                    break;
+
+                }
+
+            }
+
+            for (int i = 0; i < dvList.size(); i++) {
+
+                //取得每一个遍历出来的阶段，根据每一个遍历出来的阶段取其可能性
+                DicValue dv = dvList.get(i);
+                String listStage = dv.getValue();
+                String listPossibility = pMap.get(listStage);
+
+                //如果遍历出来的可能性为0
+                if ("0".equals(listPossibility)) {
+
+                    //----------------------黑叉
+    %>
+                    <span id="<%=i%>" onclick="changeStage('<%=listStage%>','<%=i%>')"
+                          class="glyphicon glyphicon-remove mystage"
+                          data-toggle="popover" data-placement="bottom"
+                          data-content="<%=dv.getText()%>" style="color: #000000;"></span>
+                    -----------
+
+    <%
+
+                    //如果遍历出来的阶段的可能性不为0，说明是前7个阶段，绿圈，绿色标记，黑圈
+                } else {
+
+                    //如果是当前阶段
+                    if (i == index) {
+
+                        //-------------------绿色标记
+    %>
+                        <span id="<%=i%>" onclick="changeStage('<%=listStage%>','<%=i%>')"
+                              class="glyphicon glyphicon-map-marker mystage"
+                              data-toggle="popover" data-placement="bottom"
+                              data-content="<%=dv.getText()%>" style="color: #90F790;"></span>
+                        -----------
+
+    <%
+
+                        //如果小于当前阶段
+                    } else if (i < index) {
+
+                        //-------------------绿圈
+    %>
+                        <span id="<%=i%>" onclick="changeStage('<%=listStage%>','<%=i%>')"
+                              class="glyphicon glyphicon-ok-circle mystage"
+                              data-toggle="popover" data-placement="bottom"
+                              data-content="<%=dv.getText()%>" style="color: #90F790;"></span>
+                        -----------
+
+    <%
+                        //如果大于当前阶段
+                    } else {
+
+                        //-------------------黑圈
+    %>
+                        <span id="<%=i%>" onclick="changeStage('<%=listStage%>','<%=i%>')"
+                              class="glyphicon glyphicon-record mystage"
+                              data-toggle="popover" data-placement="bottom"
+                              data-content="<%=dv.getText()%>" style="color: #000000;"></span>
+                        -----------
+
+    <%
+                    }
+
+                }
+
+            }
         }
 
     %>
@@ -285,7 +578,7 @@
         <div style="width: 300px; color: gray;">客户名称</div>
         <div style="width: 300px;position: relative; left: 200px; top: -20px;"><b>${t.customerId}</b></div>
         <div style="width: 300px;position: relative; left: 450px; top: -40px; color: gray;">阶段</div>
-        <div style="width: 300px;position: relative; left: 650px; top: -60px;"><b>${t.stage}</b></div>
+        <div style="width: 300px;position: relative; left: 650px; top: -60px;"><b id="stage">${t.stage}</b></div>
         <div style="height: 1px; width: 400px; background: #D5D5D5; position: relative; top: -60px;"></div>
         <div style="height: 1px; width: 400px; background: #D5D5D5; position: relative; top: -60px; left: 450px;"></div>
     </div>
@@ -293,7 +586,7 @@
         <div style="width: 300px; color: gray;">类型</div>
         <div style="width: 300px;position: relative; left: 200px; top: -20px;"><b>${t.type}</b></div>
         <div style="width: 300px;position: relative; left: 450px; top: -40px; color: gray;">可能性</div>
-        <div style="width: 300px;position: relative; left: 650px; top: -60px;"><b>${t.possibility}</b></div>
+        <div style="width: 300px;position: relative; left: 650px; top: -60px;"><b id="possibility">${t.possibility}</b></div>
         <div style="height: 1px; width: 400px; background: #D5D5D5; position: relative; top: -60px;"></div>
         <div style="height: 1px; width: 400px; background: #D5D5D5; position: relative; top: -60px; left: 450px;"></div>
     </div>
@@ -318,8 +611,8 @@
     </div>
     <div style="position: relative; left: 40px; height: 30px; top: 70px;">
         <div style="width: 300px; color: gray;">修改者</div>
-        <div style="width: 500px;position: relative; left: 200px; top: -20px;"><b>${t.editBy}&nbsp;&nbsp;</b><small
-                style="font-size: 10px; color: gray;">${t.editTime}</small></div>
+        <div style="width: 500px;position: relative; left: 200px; top: -20px;"><b id="editBy">${t.editBy}&nbsp;&nbsp;</b><small
+                style="font-size: 10px; color: gray;" id="editTime">${t.editTime}</small></div>
         <div style="height: 1px; width: 550px; background: #D5D5D5; position: relative; top: -20px;"></div>
     </div>
     <div style="position: relative; left: 40px; height: 30px; top: 80px;">
@@ -418,30 +711,30 @@
                 </tr>
                 </thead>
                 <tbody id="tranHistoryBody">
-               <%-- <tr>
-                    <td>资质审查</td>
-                    <td>5,000</td>
-                    <td>10</td>
-                    <td>2017-02-07</td>
-                    <td>2016-10-10 10:10:10</td>
-                    <td>zhangsan</td>
-                </tr>
-                <tr>
-                    <td>需求分析</td>
-                    <td>5,000</td>
-                    <td>20</td>
-                    <td>2017-02-07</td>
-                    <td>2016-10-20 10:10:10</td>
-                    <td>zhangsan</td>
-                </tr>
-                <tr>
-                    <td>谈判/复审</td>
-                    <td>5,000</td>
-                    <td>90</td>
-                    <td>2017-02-07</td>
-                    <td>2017-02-09 10:10:10</td>
-                    <td>zhangsan</td>
-                </tr>--%>
+                <%-- <tr>
+                     <td>资质审查</td>
+                     <td>5,000</td>
+                     <td>10</td>
+                     <td>2017-02-07</td>
+                     <td>2016-10-10 10:10:10</td>
+                     <td>zhangsan</td>
+                 </tr>
+                 <tr>
+                     <td>需求分析</td>
+                     <td>5,000</td>
+                     <td>20</td>
+                     <td>2017-02-07</td>
+                     <td>2016-10-20 10:10:10</td>
+                     <td>zhangsan</td>
+                 </tr>
+                 <tr>
+                     <td>谈判/复审</td>
+                     <td>5,000</td>
+                     <td>90</td>
+                     <td>2017-02-07</td>
+                     <td>2017-02-09 10:10:10</td>
+                     <td>zhangsan</td>
+                 </tr>--%>
                 </tbody>
             </table>
         </div>

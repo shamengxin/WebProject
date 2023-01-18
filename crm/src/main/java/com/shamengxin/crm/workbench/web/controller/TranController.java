@@ -47,16 +47,74 @@ public class TranController extends HttpServlet {
         } else if ("/workbench/transaction/getCustomerName.do".equals(path)) {
 
             getCustomerName(request, response);
+
         } else if ("/workbench/transaction/save.do".equals(path)) {
 
             save(request, response);
+
         } else if ("/workbench/transaction/detail.do".equals(path)) {
 
             detail(request, response);
+
         } else if ("/workbench/transaction/getHistoryListByTranId.do".equals(path)) {
 
             getHistoryListByTranId(request, response);
+
+        } else if ("/workbench/transaction/changeStage.do".equals(path)) {
+
+            changeStage(request, response);
+
+        } else if ("/workbench/transaction/getCharts.do".equals(path)) {
+
+            getCharts(request, response);
+
         }
+    }
+
+    private void getCharts(HttpServletRequest request, HttpServletResponse response) {
+
+        System.out.println("取得交易阶段数量统计图表的数据");
+
+        TranService ts = (TranService) ServiceFactory.getService(new TranServiceImpl());
+
+        Map<String,Object> map = ts.getCharts();
+
+        PrintJson.printJsonObj(response,map);
+
+
+    }
+
+    private void changeStage(HttpServletRequest request, HttpServletResponse response) {
+
+        System.out.println("执行改变阶段的操作");
+
+        String id = request.getParameter("id");
+        String stage = request.getParameter("stage");
+        String money = request.getParameter("money");
+        String expectedDate = request.getParameter("expectedDate");
+        String editTime = DateTimeUtil.getSysTime();
+        String editBy = ((User)request.getSession().getAttribute("user")).getName();
+
+        Tran t = new Tran();
+        t.setId(id);
+        t.setStage(stage);
+        t.setMoney(money);
+        t.setExpectedDate(expectedDate);
+        t.setEditTime(editTime);
+        t.setEditBy(editBy);
+
+        TranService ts = (TranService) ServiceFactory.getService(new TranServiceImpl());
+
+        boolean flag = ts.changeStage(t);
+
+        Map<String,String> pMap = (Map<String, String>) request.getServletContext().getAttribute("pMap");
+        t.setPossibility(pMap.get(stage));
+
+        Map<String,Object> map =new HashMap<String, Object>();
+        map.put("success",flag);
+        map.put("t",t);
+
+        PrintJson.printJsonObj(response,map);
     }
 
     private void getHistoryListByTranId(HttpServletRequest request, HttpServletResponse response) {
