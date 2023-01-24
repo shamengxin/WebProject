@@ -35,9 +35,9 @@ public class Test1 {
             System.out.println("ip地址受限，请联系管理员");
         }*/
 
-        /*String pwd="123";
+        String pwd="123";
         pwd= MD5Util.getMD5(pwd);
-        System.out.println(pwd);*/
+        System.out.println(pwd);
 
     }
 

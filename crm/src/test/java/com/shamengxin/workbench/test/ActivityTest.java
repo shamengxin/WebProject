@@ -17,7 +17,7 @@ import org.junit.Test;
  */
 public class ActivityTest {
 
-    /*@Test
+    @Test
     public void testSave() {
 
         Activity a = new Activity();
@@ -30,7 +30,7 @@ public class ActivityTest {
 
         Assert.assertEquals(flag,true);
 
-    }*/
+    }
 
     /*@Test
     public void testUpdate() {
